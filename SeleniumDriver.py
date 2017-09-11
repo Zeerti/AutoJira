@@ -136,10 +136,10 @@ class SeleniumDriver():
 #     firefox.login("")
 #     firefox.createNewTicket()
 #     firefox.inputDataToCase("Sync Error Test",
-#                             "5504431-1", "Lets make a new case in JIRA to Showcase useage")
+#                             "123456-1", "Lets make a new case in JIRA to Showcase useage")
 
     # save new created case
     # .//*[@id='aui-flag-container']/div/div
 
 
-    # [~chris_wright@partech.com] [~angelo_espineli@partech.com] [~garrett_breeden@partech.com]
+  
