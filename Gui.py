@@ -1,150 +1,175 @@
-# AUTHOR: GARRETT BREEDEN
-# DESCRIPTION: Automate creating Sales Splits and Sales Clear in JIRA
+'''
+Author; Garrett Breeden
+Version: 1.0
+    1. Integrated SeleniumDriver into GUI 
+        - Data should now pass from GUI -> Selenium
+    2. Updated input field classes
+    3. Small GUI Tweaks
+
+Version: 1.2
+    1. Corrected issue with data being passed to Selenium from GUI
 
 
 
-# TODO: Automatically copy new case created into clipboard (Look into parsing HTML / Screenshotting)
-# TODO: https://github.com/kybu/headless-selenium-for-win
+TO ONLY BE USED BY L2 AND L3 @ PARTECH
+'''
+# TODO: Change browser to be launched when create button is clicked. 
 
-from selenium import webdriver
-# Allows for keystokes to be passed
-from selenium.webdriver.common.keys import Keys
-from time import sleep
+from tkinter import *
+from SeleniumDriver import *
 import pyperclip
 import re
-import pickle
+# import ttk               ONLY GOOD FOR STYLE
 
 
-class SeleniumDriver():
-    def __init__(self,):
-        self.driver = webdriver.Ie()
-        self.sessionCookies = None
+class JiraGeneratorWindow():
+    username = None
+    password = None
 
-    def loadPage(self, website, title):
-        self.driver.get(website)
-        assert title in self.driver.title  # Ensure jira loaded correctly
-        print("Loaded {} successfully".format(title))
+    summary = None
+    clarify = None
+    details = None
 
-    def login(self, username, password):
+    def __init__(self, master, selenium):
+        self.master = master
+        master.title("Jira Automation")
+        self.firefox = selenium
+        #        #
+        # CONFIG #
+        #        #
+        self.colorWhiteText = '#FFF'
+        self.colorGreyBackground = '#708090'
+        #           #
+        # </CONFIG> #
+        #           #
+        empty_spacer_1 = Label(master, text=" ")
+        empty_spacer_1.grid(column=0, row=0)
 
-        username_form = self.driver.find_element_by_xpath(
-            ".//*[@id='login-form-username']")
-        username_form.clear()
-        username_form.send_keys(username)
-
-        password_form = self.driver.find_element_by_xpath(
-            ".//*[@id='login-form-password']")
-        password_form.clear()
-        password_form.send_keys(password)
-
-        submit_button = self.driver.find_element_by_xpath(
-            ".//*[@id='login-form-submit']")
-        submit_button.click()
+        self.login_button = Button(
+            master, text="JIRA Login", command=self.setCredentials)
+        self.login_button.grid(sticky="E", column=3, row=0)
         
+        #TODO: Check that login successfulyl worked
+        # 1. <p> Sorry, an error occurred trying to log you in - please try again. </p>
+        # Invalid password
 
-    def createNewTicket(self):
-        title = "Dashboard"
-        while((title not in self.driver.title) == True):
-            sleep(.25)
-            print("sleeping .25 seconds to finish loading page")
-        
-        
-        self.loadPage(
-            "https://devops.partech.com/jira/secure/Dashboard.jspa", "System Dashboard")
-        #bbs_element = self.driver.find_element_by_xpath(".//*[@id='brink-bugs-and-support-(bbs)-84']/a")
-        
-        create_ticket_button = self.driver.find_element_by_xpath('//*[@id="create_link"]')
-        create_ticket_button.click()
+        self.summary_static_text = Label(
+            master, text="Input Sync Summary:")
+        self.summary_static_text.grid(columnspan=4, sticky='W', row=1)
 
-        title = "Create Issue"
-        while((title not in self.driver.title) == True):
-            sleep(.25)
-            print("sleeping .25 seconds to finish loading page") 
+        self.summary_field = Entry(root, width=61,)
+        self.summary_field.configure(
+            background=self.colorGreyBackground, foreground=self.colorWhiteText)
+        self.summary_field.grid(columnspan=4, column=0, row=2, sticky="W")
 
-        project_field_element = self.driver.find_element_by_xpath(
-            "//*[@id='project-field']")
-        project_field_element.clear()
-        project_field_element.send_keys("B3SE")
-        project_field_element.send_keys(Keys.ENTER)
+        empty_spacer_2 = Label(master, text=" ")
+        empty_spacer_2.grid(column=0, row=3)
 
-        sleep(.5)
-        issue_type_field_element = self.driver.find_element_by_xpath(
-            '//*[@id="issuetype-field"]')
-        issue_type_field_element.clear()
-        issue_type_field_element.send_keys("Task")
-        issue_type_field_element.send_keys(Keys.ENTER)
-        
+        self.clarify_static_text = Label(
+            master, text="Input Case Number:")
+        self.clarify_static_text.grid(columnspan=4, sticky='W', row=4)
 
-        # issue_submit_button = self.driver.find_element_by_xpath(
-        #     ".//*[@id='issue-create-submit']")
-        # issue_submit_button.click()
+        self.clarify_field = Entry(root, width=61)
+        self.clarify_field.configure(
+            background=self.colorGreyBackground, foreground=self.colorWhiteText)
+        self.clarify_field.grid(column=0, row=5, columnspan=4, sticky="W")
 
-    def inputDataToCase(self, summary, description):
-        sleep(1)
-        summary_field = self.driver.find_element_by_xpath(
-            '//*[@id="summary"]')
-        summary_field.send_keys(summary)
+        empty_spacer_3 = Label(master, text=" ")
+        empty_spacer_3.grid(column=0, row=6)
 
-        
-        description_text_field = self.driver.find_element_by_xpath('//*[@id="description"]')
-        description_text_field.click()
-        description_text_field.send_keys(description)
+        self.detailed_static_text = Label(
+            master, text="Input Detailed Information")
+        self.detailed_static_text.grid(columnspan=4, sticky="W", row=7)
 
-        # Set Priority of Case
-        priority_drop_down = self.driver.find_element_by_xpath('//*[@id="priority-field"]')
-        #priority_drop_down.clear()
-        sleep(.5) #Ensure it properly reloads
-        priority_drop_down.click()
-        priority_drop_down.send_keys("Highest", Keys.TAB)
+        self.detailed_field = Text(root, height=35, width=79)
+        self.detailed_field.configure(
+            background=self.colorGreyBackground, foreground=self.colorWhiteText)
+        self.detailed_field.grid(columnspan=4, row=8, column=0, sticky="W")
 
+        self.run_split_button = Button(
+            master, text="Create JIRA", command=self.createCase)
+        self.run_split_button.grid(row=10, column=1, sticky="W")
 
+        self.close_button = Button(master, text="Close", command=master.quit)
+        self.close_button.grid(row=10, column=2, sticky="E")
 
-        # Add state tag
-        # tags_drop_down = self.driver.find_element_by_xpath(".//*[@id='labels-multi-select']/span")
-        # tags_drop_down.click()
+    # Create TopLevel Pane to Input Credentials
+    def setCredentials(self):
+        self.win = Toplevel()
+        self.win.title = "Input JIRA Login"
 
-        submit_JIRA_case_button = self.driver.find_element_by_xpath('//*[@id="create-issue-submit"]')
-        submit_JIRA_case_button.click()
+        self.username_static_text = Label(self.win, text="Username:")
+        self.username_static_text.grid(column=0, row=0, sticky="E")
 
-        JIRA_case_number_element = self.driver.find_element_by_xpath('//*[@id="aui-flag-container"]/div/div')
-        self.JIRA_case_raw = JIRA_case_number_element.get_attribute("innerHTML")
-        self.last_created_JIRA_Case = self.getJIRACase(self.JIRA_case_raw)
+        self.username_field = Entry(self.win)
+        self.username_field.configure(
+            background=self.colorGreyBackground, foreground=self.colorWhiteText)
+        self.username_field.grid(column=1, row=0, sticky="W")
 
+        self.password_static_text = Label(self.win, text="Password:")
+        self.password_static_text.grid(column=0, row=1, sticky="E")
 
+        self.password_field = Entry(self.win, show="*")
+        self.password_field.configure(
+            background=self.colorGreyBackground, foreground=self.colorWhiteText)
+        self.password_field.grid(column=1, row=1, sticky="W")
 
-        #self.driver.quit()
+        self.submit_button = Button(self.win, text="Save Credentials", command=self.setLoginInfo)
+        self.submit_button.grid(column=1, row=2, columnspan=2)
 
-    # TODO: Finish Parsing Users Function
-    def parseUsers(self, users):
-        pass
+    # Set the login information to the class member
+    def setLoginInfo(self):
+        self.password = self.password_field.get()
+        self.username = self.username_field.get()
+        self.destroy_window(self.win)
 
-        assigned_to_element = self.driver.find_element_by_xpath(
-            ".//*[@id='assignee-field']")  
+    # Error popup notification function
+    def errorNotification(self, error_message):
+        self.error_window = Toplevel()
+        self.error_window.title = "ERROR - PLEASE READ"
+        error_message_text = Message(
+            self.error_window, text=error_message)
+        error_message_text.grid(row=0, column=0, columnspan=3)
 
-    # TODO: Enable postAttachment function
-    # Let the user control add this until completed
-    def postAttachment(self, admin_site, site_id, location_id):
-        pass
+        close_button_error = Button(
+            self.error_window, text="Ok", command=lambda: self.error_window.destroy())
+        close_button_error.grid(row=1, column=1)
+
+    # closes passed window
+    def destroy_window(self, window):
+        window.destroy()
+
+    def createCase(self):
+        # Ensures JIRA button has been at least clicked before allowing script to execute.
+        if(self.password == None or self.username == None or self.password == ' ' or self.username == ' '):
+            self.errorNotification(
+                "Please login to JIRA first")
+        else:
+            self.firefox.loadPage("https://devops.partech.com/jira/login.jsp", "JIRA")
+            self.firefox.login(self.username, self.password)
+            self.firefox.createNewTicket()
+            self.firefox.inputDataToCase(self.summary_field.get(), self.detailed_field.get("1.0", END))
+            
+            #Display created JIRA case
+            self.errorNotification("https://devops.partech.com/" + self.firefox.last_created_JIRA_Case + "\nThis has been copied to your clipboard")
+            pyperclip.copy("https://devops.partech.com" + self.firefox.last_created_JIRA_Case)
     
-    def getJIRACase(self, searchString):
-        regex = re.search(r'(/jira/browse/B3SE-\d+)', searchString)
-        print(regex.groups()[0])
-        return regex.groups()[0]
-
-    
 
 
-# if __name__ == "__main__":
-#     firefox = SeleniumDriver()
+if(__name__ == "__main__"):
+    root = Tk()
+    _selenium = SeleniumDriver()
+    main_GUI = JiraGeneratorWindow(root, _selenium)
+    root.mainloop()
 
-#     firefox.loadPage("https://devops.partech.com/jira/login.jsp", "JIRA")
-#     firefox.login("")
-#     firefox.createNewTicket()
-#     firefox.inputDataToCase("Sync Error Test",
-#                             "5504431-1", "Lets make a new case in JIRA to Showcase useage")
+    # <div class="aui-message aui-message-success"
+    # <a class="issue-created-key issue-link" data-issue
 
-    # save new created case
-    # .//*[@id='aui-flag-container']/div/div
-
-
-    # [~chris_wright@partech.com] [~angelo_espineli@partech.com] [~garrett_breeden@partech.com]
+    # CONTACTS
+    # [~gary_meyer@partech.com]
+    # [~garrett_breeden@partech.com]
+    # [~steven_eddy@partech.com]
+    # [~Derek_puttmann@partech.com]
+    # [~anglo_espineli@partech.com]
+    # [~chris_wright@partech.com]
+    # [~ryan_schneider@partech.com]
