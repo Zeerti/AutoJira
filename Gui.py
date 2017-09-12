@@ -10,11 +10,15 @@ Version: 1.2
     1. Corrected issue with data being passed to Selenium from GUI
 
 
+
 TO ONLY BE USED BY L2 AND L3 @ PARTECH
 '''
-from Tkinter import *
+# TODO: Change browser to be launched when create button is clicked. 
+
+from tkinter import *
 from SeleniumDriver import *
 import pyperclip
+import re
 # import ttk               ONLY GOOD FOR STYLE
 
 
@@ -44,6 +48,10 @@ class JiraGeneratorWindow():
         self.login_button = Button(
             master, text="JIRA Login", command=self.setCredentials)
         self.login_button.grid(sticky="E", column=3, row=0)
+        
+        #TODO: Check that login successfulyl worked
+        # 1. <p> Sorry, an error occurred trying to log you in - please try again. </p>
+        # Invalid password
 
         self.summary_static_text = Label(
             master, text="Input Sync Summary:")
@@ -120,7 +128,7 @@ class JiraGeneratorWindow():
         self.error_window = Toplevel()
         self.error_window.title = "ERROR - PLEASE READ"
         error_message_text = Message(
-            self.error_window, text=error_message, width=500)
+            self.error_window, text=error_message)
         error_message_text.grid(row=0, column=0, columnspan=3)
 
         close_button_error = Button(
@@ -141,7 +149,11 @@ class JiraGeneratorWindow():
             self.firefox.login(self.username, self.password)
             self.firefox.createNewTicket()
             self.firefox.inputDataToCase(self.summary_field.get(), self.detailed_field.get("1.0", END))
-            #TODO: Link GUI Input to Selenium.    
+            
+            #Display created JIRA case
+            self.errorNotification("https://devops.partech.com/" + self.firefox.last_created_JIRA_Case + "\nThis has been copied to your clipboard")
+            pyperclip.copy("https://devops.partech.com" + self.firefox.last_created_JIRA_Case)
+    
 
 
 if(__name__ == "__main__"):
@@ -152,4 +164,3 @@ if(__name__ == "__main__"):
 
     # <div class="aui-message aui-message-success"
     # <a class="issue-created-key issue-link" data-issue
-
