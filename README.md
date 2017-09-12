@@ -1,7 +1,7 @@
-#AutoJIRA
+# AutoJIRA
 Automating State Error JIRA Cases
 
-###Installation
+### Installation
  * Clone to desired location as a ZIP
  * Place the IEDriver.exe into your \%systemroot%\System32\ folder
  
