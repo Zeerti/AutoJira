@@ -38,7 +38,7 @@ class JiraGeneratorWindow():
         # CONFIG #
         #        #
         self.colorWhiteText = '#FFF'
-        self.colorGreyBackground = '#708090'
+        self.colorGreyBackground = '#303047'
         #           #
         # </CONFIG> #
         #           #
@@ -145,7 +145,7 @@ class JiraGeneratorWindow():
             self.errorNotification(
                 "Please login to JIRA first")
         else:
-            self.firefox.loadPage("https://devops.partech.com/jira/login.jsp", "JIRA")
+            self.firefox.loadPage("https://devops.partech.com/jira/login.jsp", "JIRA", True)
             self.firefox.login(self.username, self.password)
             self.firefox.createNewTicket()
             self.firefox.inputDataToCase(self.summary_field.get(), self.detailed_field.get("1.0", END))

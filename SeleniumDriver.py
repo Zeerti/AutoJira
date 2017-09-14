@@ -17,15 +17,18 @@ import pickle
 
 class SeleniumDriver():
     def __init__(self,):
-        self.driver = webdriver.Ie()
+        self.driver = None
         self.sessionCookies = None
 
-    def loadPage(self, website, title):
+    def loadPage(self, website, title, startSeleniumCheck):
+        if startSeleniumCheck == True:
+            self.driver = webdriver.Ie()
         self.driver.get(website)
         assert title in self.driver.title  # Ensure jira loaded correctly
         print("Loaded {} successfully".format(title))
 
     def login(self, username, password):
+        
 
         username_form = self.driver.find_element_by_xpath(
             ".//*[@id='login-form-username']")
@@ -50,7 +53,7 @@ class SeleniumDriver():
         
         
         self.loadPage(
-            "https://devops.partech.com/jira/secure/Dashboard.jspa", "System Dashboard")
+            "https://devops.partech.com/jira/secure/Dashboard.jspa", "System Dashboard", False)
         #bbs_element = self.driver.find_element_by_xpath(".//*[@id='brink-bugs-and-support-(bbs)-84']/a")
         
         create_ticket_button = self.driver.find_element_by_xpath('//*[@id="create_link"]')
