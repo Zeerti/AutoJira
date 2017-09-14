@@ -96,15 +96,9 @@ class SeleniumDriver():
         # Set Priority of Case
         priority_drop_down = self.driver.find_element_by_xpath('//*[@id="priority-field"]')
         #priority_drop_down.clear()
-        sleep(.5) #Ensure it properly reloads
+        sleep(.5) # Wait for elements to reload
         priority_drop_down.click()
         priority_drop_down.send_keys("Highest", Keys.TAB)
-
-
-
-        # Add state tag
-        # tags_drop_down = self.driver.find_element_by_xpath(".//*[@id='labels-multi-select']/span")
-        # tags_drop_down.click()
 
         submit_JIRA_case_button = self.driver.find_element_by_xpath('//*[@id="create-issue-submit"]')
         submit_JIRA_case_button.click()
@@ -131,23 +125,8 @@ class SeleniumDriver():
     
     def getJIRACase(self, searchString):
         regex = re.search(r'(/jira/browse/B3SE-\d+)', searchString)
-        print(regex.groups()[0])
         return regex.groups()[0]
 
     
 
 
-# if __name__ == "__main__":
-#     firefox = SeleniumDriver()
-
-#     firefox.loadPage("https://devops.partech.com/jira/login.jsp", "JIRA")
-#     firefox.login("")
-#     firefox.createNewTicket()
-#     firefox.inputDataToCase("Sync Error Test",
-#                             "5504431-1", "Lets make a new case in JIRA to Showcase useage")
-
-    # save new created case
-    # .//*[@id='aui-flag-container']/div/div
-
-
-    # [~chris_wright@partech.com] [~angelo_espineli@partech.com] [~garrett_breeden@partech.com]
